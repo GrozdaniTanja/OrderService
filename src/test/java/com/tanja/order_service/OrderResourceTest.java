@@ -3,7 +3,6 @@ package com.tanja.order_service;
 import com.tanja.order_service.dao.OrderRepository;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
 import jakarta.json.Json;
@@ -12,13 +11,10 @@ import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-
 import static io.restassured.RestAssured.given;
-;
 
 @QuarkusTest
 public class OrderResourceTest {
-    private String orderId;
 
     @InjectMock
     OrderRepository orderRepository;
@@ -28,16 +24,14 @@ public class OrderResourceTest {
         Mockito.when(orderRepository.createOrder(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyDouble())).thenReturn(Uni.createFrom().nullItem());
 
 
-        // Make the POST request to the endpoint
         given()
                 .contentType(ContentType.JSON)
                 .body("{\"orderNumber\": \"Test OrderNumber\", \"userId\": \"Test UserId\", \"productId\": \"Test ProductId\", \"totalCost\": 30.5}")
                 .when()
                 .post("/order")
                 .then()
-                .statusCode(204); // Assert that the endpoint returns a 204 status code
+                .statusCode(204);
 
-        // Optionally, verify that the createOrder method was called with the correct arguments
         Mockito.verify(orderRepository).createOrder(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyDouble());
     }
 
@@ -53,14 +47,14 @@ public class OrderResourceTest {
 
         Mockito.when(orderRepository.getOrderById(ArgumentMatchers.anyString())).thenReturn(Uni.createFrom().item(Response.ok(expectedOrderJson).build()));
 
-        // Make the GET request to the endpoint
+
         given()
                 .when()
                 .get("/order/65fea17fa9d694237d920f25")
                 .then()
-                .statusCode(200); // Assert that the endpoint returns a 200 status code
+                .statusCode(200);
 
-        // Optionally, verify that the getOrderById method was called with the correct arguments
+
         Mockito.verify(orderRepository).getOrderById("65fea17fa9d694237d920f25");
     }
 
@@ -69,25 +63,25 @@ public class OrderResourceTest {
         given()
                 .when().get("/order")
                 .then()
-                .statusCode(200); // Assuming successful retrieval returns 200
+                .statusCode(200);
     }
 
 
 
     @Test
     void testUpdateOrder_Successful() {
-        // Stub the behavior of the updateOrder method to return a successful result
+
         Mockito.when(orderRepository.updateOrder(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyDouble())).thenReturn(Uni.createFrom().nullItem());
-        // Make the PUT request to the endpoint
+
         given()
                 .contentType(ContentType.JSON)
                 .body("{\"orderNumber\": \"Updated OrderNumber\", \"userId\": \"Updated UserId\", \"productId\": \"Updated ProductId\", \"totalCost\": 40.0}")
                 .when()
                 .put("/order/65fea17fa9d694237d920f25")
                 .then()
-                .statusCode(204); // Assert that the endpoint returns a 204 status code
+                .statusCode(204);
 
-        // Optionally, verify that the updateOrder method was called with the correct arguments
+
         Mockito.verify(orderRepository).updateOrder("65fea17fa9d694237d920f25", "Updated OrderNumber", "Updated UserId", "Updated ProductId", 40.0);
     }
 
@@ -96,14 +90,14 @@ public class OrderResourceTest {
         Mockito.when(orderRepository.deleteOrder(Mockito.anyString())).thenReturn(Uni.createFrom().nullItem());
 
 
-        // Make the DELETE request to the endpoint
+
         given()
                 .when()
                 .delete("/order/65fea17fa9d694237d920f25")
                 .then()
-                .statusCode(204); // Assert that the endpoint returns a 204 status code
+                .statusCode(204);
 
-        // Optionally, verify that the deleteOrder method was called with the correct arguments
+
         Mockito.verify(orderRepository).deleteOrder("65fea17fa9d694237d920f25");
     }
 }
