@@ -11,7 +11,7 @@ jobs:
 
     env:
       MONGO_DB_URI_GCS: ${{ secrets.MONGO_DB_URI_3 }}
-      MONGO_DB_DATABASE_GCS: ${{ secrets.MONGO_DB_3 }}
+      MONGO_DB_DATABASE_GCS: ${{ secrets.MONGO_DB_DATABASE_3 }}
 
     steps:
       - name: Checkout repository
