@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  order-service:
+    image: tanjag/order-service-jvm:1.1.0
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo_db
+      - artemis
+    environment:
+      MONGO_DB_URI_3: ${MONGO_DB_URI_3}
+      MONGO_DB_DATABASE_3: ${MONGO_DB_DATABASE_3}
+      QUARKUS_ARTEMIS_URL: tcp://artemis:61616
+
+  mongo_db:
+    image: mongo:7.0.6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  artemis:
+    image: vromero/activemq-artemis:latest
+    ports:
+      - "8161:8161"  # Web Console
+      - "61616:61616" # AMQP Port
+      - "5445:5445"   # Core Port
+
+volumes:
+  mongo-data:
