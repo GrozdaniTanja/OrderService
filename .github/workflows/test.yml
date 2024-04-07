@@ -49,7 +49,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t $IMAGE_NAME:$TAG .
+        run: docker build -f src/main/docker/Dockerfile.jvm -t $IMAGE_NAME:$TAG .
 
       - name: Push Docker image to DockerHub
         run: docker push $IMAGE_NAME:$TAG
