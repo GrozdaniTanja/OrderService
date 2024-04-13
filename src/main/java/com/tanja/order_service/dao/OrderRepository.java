@@ -27,23 +27,29 @@ public class OrderRepository implements ReactivePanacheMongoRepository<Order> {
     @Inject
     JMSContextManager jmsContextManager;
 
-    public Uni<Void> createOrder(String orderNumber, String userId, String productId, double totalCost) {
+    public Uni<Response> createOrder(String orderNumber, String userId, String productId, double totalCost) {
         Order order = new Order();
         order.setOrderNumber(orderNumber);
         order.setUserId(userId);
         order.setProductId(productId);
         order.setTotalCost(totalCost);
-        return persist(order).replaceWithVoid().onItem().transform(ignored -> {
-            String logMessage = "New order added: " + orderNumber;
-            try (JMSContext context = jmsContextManager.getContext()) {
-                Queue queue = context.createQueue("OrderServiceQueue");
-                context.createProducer().send(queue, logMessage);
-                LOG.info(logMessage);
-            } catch (Exception e) {
-                LOG.error("Failed to send log message", e);
-            }
-            return null;
-        }).onFailure().invoke(throwable -> LOG.error("Failed to add group class", throwable)).replaceWithVoid();
+        return persist(order)
+                .replaceWithVoid()
+                .onItem().transform(ignored -> {
+                    String logMessage = "New order added: " + orderNumber;
+                    try (JMSContext context = jmsContextManager.getContext()) {
+                        Queue queue = context.createQueue("OrderServiceQueue");
+                        context.createProducer().send(queue, logMessage);
+                        LOG.info(logMessage);
+                    } catch (Exception e) {
+                        LOG.error("Failed to send log message", e);
+                    }
+                    return Response.status(Response.Status.CREATED).entity(order).build();
+                })
+                .onFailure().recoverWithItem(throwable -> {
+                    LOG.error("Failed to add order", throwable);
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Failed to create the order").build();
+                });
     }
 
     public Uni<Response> getOrderById(String id) {
@@ -69,7 +75,7 @@ public class OrderRepository implements ReactivePanacheMongoRepository<Order> {
                 });
     }
 
-    public Uni<Void> updateOrder(String id, String orderNumber, String userId, String productId, double totalCost) {
+    public Uni<Response> updateOrder(String id, String orderNumber, String userId, String productId, double totalCost) {
         try {
             ObjectId objectId = new ObjectId(id);
             return findById(objectId)
@@ -78,8 +84,9 @@ public class OrderRepository implements ReactivePanacheMongoRepository<Order> {
                         order.setUserId(userId);
                         order.setProductId(productId);
                         order.setTotalCost(totalCost);
-                        return order.update().replaceWithVoid()
-                                .onItem().invoke(ignored -> {
+                        return order.update()
+                                .replaceWithVoid()
+                                .onItem().transform(ignored -> {
                                     String logMessage = "Updated order with id: " + id;
                                     try (JMSContext context = jmsContextManager.getContext()) {
                                         Queue queue = context.createQueue("OrderServiceQueue");
@@ -88,18 +95,23 @@ public class OrderRepository implements ReactivePanacheMongoRepository<Order> {
                                     } catch (Exception e) {
                                         LOG.error("Failed to send log message", e);
                                     }
+                                    return Response.ok("Order with ID " + id + " updated successfully").build();
                                 });
-                    }).onFailure().recoverWithNull();
+                    }).onFailure().recoverWithItem(throwable -> {
+                        LOG.error("Failed to update order with id: " + id, throwable);
+                        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Failed to update order").build();
+                    });
         } catch (Exception ex) {
             LOG.error("Invalid ObjectId format for id: " + id, ex);
             return Uni.createFrom().failure(ex);
         }
     }
 
-    public Uni<Void> deleteOrder(String id) {
+    public Uni<Response> deleteOrder(String id) {
         ObjectId objectId = new ObjectId(id);
-        return deleteById(objectId).replaceWithVoid()
-                .onItem().invoke(ignored -> {
+        return deleteById(objectId)
+                .replaceWithVoid()
+                .onItem().transform(ignored -> {
                     String logMessage = "Deleted order with id: " + id;
                     try (JMSContext context = jmsContextManager.getContext()) {
                         Queue queue = context.createQueue("OrderServiceQueue");
@@ -108,9 +120,13 @@ public class OrderRepository implements ReactivePanacheMongoRepository<Order> {
                     } catch (Exception e) {
                         LOG.error("Failed to send log message", e);
                     }
+                    return Response.ok("Order with ID " + id + " deleted successfully").build();
                 })
-                .onFailure().invoke(throwable -> LOG.error("Failed to delete order with id: " + id, throwable));
-        }
+                .onFailure().recoverWithItem(throwable -> {
+                    LOG.error("Failed to delete order with id: " + id, throwable);
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Failed to delete order").build();
+                });
+    }
 
     public Uni<List<Order>> getAllOrders() {
         return findAll().list()
