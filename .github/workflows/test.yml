@@ -43,14 +43,14 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Docker image
         run: |
-          docker build \
+          docker buildx build \
             -f src/main/docker/Dockerfile.jvm \
             --build-arg QUARKUS_MONGODB_CONNECTION_STRING=mongodb://${{ secrets.MONGO_DB_URI_3 }} \
             --build-arg QUARKUS_MONGODB_DATABASE=${{ secrets.MONGO_DB_DATABASE_3 }} \
