@@ -55,6 +55,7 @@ jobs:
             --build-arg QUARKUS_MONGODB_CONNECTION_STRING=mongodb://${{ secrets.MONGO_DB_URI_3 }} \
             --build-arg QUARKUS_MONGODB_DATABASE=${{ secrets.MONGO_DB_DATABASE_3 }} \
             -t $IMAGE_NAME:$TAG \
+            .
 
       - name: Push Docker image to DockerHub
         run: docker push $IMAGE_NAME:$TAG
