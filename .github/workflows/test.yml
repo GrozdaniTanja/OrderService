@@ -15,7 +15,7 @@ jobs:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       IMAGE_NAME: tanjag/order-service-jvm
-      TAG: 1.1.0
+      TAG: 3.0.0
 
     steps:
       - name: Checkout repository
@@ -49,7 +49,12 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -f src/main/docker/Dockerfile.jvm -t $IMAGE_NAME:$TAG .
+        run: |
+          docker build \
+            -f src/main/docker/Dockerfile.jvm \
+            --build-arg QUARKUS_MONGODB_CONNECTION_STRING=mongodb://${{ secrets.MONGO_DB_URI_3 }} \
+            --build-arg QUARKUS_MONGODB_DATABASE=${{ secrets.MONGO_DB_DATABASE_3 }} \
+            -t $IMAGE_NAME:$TAG \
 
       - name: Push Docker image to DockerHub
         run: docker push $IMAGE_NAME:$TAG

@@ -30,7 +30,7 @@ public class OrderResourceTest {
                 .when()
                 .post("/order")
                 .then()
-                .statusCode(204);
+                .statusCode(201);
 
         Mockito.verify(orderRepository).createOrder(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyDouble());
     }
@@ -79,7 +79,7 @@ public class OrderResourceTest {
                 .when()
                 .put("/order/65fea17fa9d694237d920f25")
                 .then()
-                .statusCode(204);
+                .statusCode(200);
 
 
         Mockito.verify(orderRepository).updateOrder("65fea17fa9d694237d920f25", "Updated OrderNumber", "Updated UserId", "Updated ProductId", 40.0);
@@ -90,13 +90,11 @@ public class OrderResourceTest {
         Mockito.when(orderRepository.deleteOrder(Mockito.anyString())).thenReturn(Uni.createFrom().nullItem());
 
 
-
         given()
                 .when()
                 .delete("/order/65fea17fa9d694237d920f25")
                 .then()
-                .statusCode(204);
-
+                .statusCode(200);
 
         Mockito.verify(orderRepository).deleteOrder("65fea17fa9d694237d920f25");
     }

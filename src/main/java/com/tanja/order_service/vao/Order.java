@@ -8,7 +8,7 @@ import java.util.Date;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
-@MongoEntity(database = "ITA3", collection="order")
+@MongoEntity(database = "orderDB", collection="order")
 public class Order extends ReactivePanacheMongoEntity  {
 
     public String orderNumber;
